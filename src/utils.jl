@@ -32,16 +32,105 @@ function transform_vector_to_matrix_mode(arr::Array, matrix_mode::String, freq_n
     for m=1:freq_n
         varr = arr[(k*(m-1) + 2):k*m]
         n = Int(round(0.5*(sqrt(4*k - 3) - 1)))
+        # TODO: Use LinearAlgebra to construct the diagonal matrices
         if matrix_mode == "UPPER"
             n = round(0.5*(sqrt(4*k - 3) - 1))
             freq_params[arr[k*(m-1) + 1]] = [2i <= j ? (arr[(n*(n+1)-(n-i+1+1)*(n-i+1))>>>1 + 1 + (j-1)%n - (i - 1)]) : 0 for i=1:2n, j=1:n]
+            
         elseif matrix_mode == "LOWER"
             n = Int(round(0.5*(sqrt(4*k - 3) - 1)))
             freq_params[arr[k*(m-1) + 1]] = [2i >= j ? varr[(((i+1)*i)>>>1 + (n-1) - ((n - j )%n)- (i-1))] : 0 for i=1:n, j=1:2n]
         elseif matrix_mode == "FULL"
-            n = convert(Int64, round(sqrt(k)))
-            freq_params[arr[k*(m-1) + 1]] = [arr[i*n + j] for i = 1:n, j = 1:n]
+            n = Int(round(sqrt((k - 1)/2)))
+            freq_params[arr[k*(m-1) + 1]] = [varr[(i-1)*2n + (j-1)%2n + 1] for i=1:n, j=1:2n]
         end
+        i += 1
     end
     return freq_params
  end
+
+ function scatter_params_to_admittance(s_params::Array, ref_resistance::Int)
+    n, m = size(s_params)
+    if n != m
+        throw("Provided matrix should be square")
+    end
+
+    return inv(I + s_params)*(I - s_params)/ref_resistance
+ end
+ 
+ function admittance_params_to_scatter(y_params::Array, ref_resistance::Int)
+    n, m = size(y_params)
+    if n != m
+        throw("Provided matrix should be square")
+    end
+
+    return inv(I + y_params*ref_resistance)*(I - y_params*ref_resistance)
+ end
+ 
+ function impedance_params_to_scatter(z_params::Array, ref_resistance::Int)
+    n, m = size(z_params)
+    if n != m
+        throw("Provided matrix should be square")
+    end
+
+    return inv(I + z_params/ref_resistance)*(z_params/ref_resistance - 1)
+ end
+
+ function scatter_params_to_impedance(s_params::Array, ref_resistance::Int)
+    n, m = size(s_params)
+    if n != m
+        throw("Provided matrix should be square")
+    end
+
+    return (I + s_params)*(z_params/ref_resistance - 1)
+ end
+
+
+ """
+ Converts parameters in Magnitude-Angle to Real-Imaginary format
+...
+# Arguments
+- `ma_params` : Array of tuples in the form (magnitude[linear], angle[rad])
+...
+"""
+function ma_to_ri(ma_params::Array)
+    return [(t[1]*cos(t[2]), t[1]*sin(t[2])) for t in ma_params]
+end
+
+"""
+Converts parameters in Real-Imaginary to Magnitude-Angle format
+...
+# Arguments
+- `ri_params` : Array of tuples in the form (real, imaginary)
+...
+"""
+function ri_to_ma(ma_params::Array)
+   return [(sqrt(t[1]*t[1] + t[2]*t[2]), atan(t[2]/t[1])) for t in ma_params]
+end
+
+
+"""
+Converts parameters in Decibel-Angle to Magnitude-Angle format
+...
+# Arguments
+- `db_params` : Array of tuples in the form (magnitude[db], angle[rad])
+
+Note: for Touchstoner ver2.0 files decibel = 20log10
+...
+"""
+function db_to_ma(db_params::Array)
+   return [(10^(t[1]/20), t[2]) for t in db_params]
+end
+
+"""
+Converts parameters in Magnitude-Angle to Decibel-Angle format
+...
+# Arguments
+- `ma_params` : Array of tuples in the form (magnitude[linear], angle[rad])
+
+Note: for Touchstoner ver2.0 files decibel = 20log10
+...
+"""
+function ma_to_db(ma_params::Array)
+   return [(20log1o(t[1]), t[2]) for t in ma_params]
+end
