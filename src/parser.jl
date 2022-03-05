@@ -44,7 +44,7 @@ struct TouchstoneSnP
         # Parse option line
         freq_unit = match(r"((?:GHZ)|(?:KHZ)|(?:MHZ)|(?:HZ))", sentences[i])
         if !(freq_unit === nothing)
-            frequency_unit = freq_unit[1]
+            frequency_unit = freq_unit[1][1:end-1]*"z"
         end
 
         param_type = match(r"\s(S|Y|Z|H|G)\s", sentences[i])
@@ -154,13 +154,12 @@ end
 
 parameters = data[frequency]
 n, m = size(parameters)
-
 if snp.parameter_format == "RI"
     return [to_complex([i, 2j - 1:2j]) for i = 1:n, j = 1:n]
 elseif snp.parameter_format == "MA"
    return [to_complex(ma_to_ri(parameters[i, 2j - 1:2j])) for i = 1:n, j = 1:n]
 elseif snp.parameter_format == "DB"
-    return [to_complex(db_to_ma(ma_to_ri(parameters[i, 2j - 1:2j]))) for i = 1:n, j = 1:n]
+    return [to_complex(ma_to_ri(db_to_ma(parameters[i, 2j - 1:2j]))) for i = 1:n, j = 1:n]
 end
 end
 
@@ -181,23 +180,21 @@ function convert_param_type(snp::TouchstoneSnP, frequency::Float64, parameters_t
         throw("Frequency not specified in data")
     end
 
-
     # Convert to R-I format for easier conversion
     parameters = get_ri_form(snp, frequency, noise_data)
-
     # todo: Mixed-port parameters
     # Also I don't like this at all :P
     if parameters_type == "S"
         if snp.parameter_type == "S"
             return parameters
         elseif snp.parameter_type == "Y"
-            return admittance_params_to_scatter(parameters)
+            return admittance_params_to_scatter(parameters, snp.reference_resistance)
         elseif snp.parameter_type == "Z"
-            return impedance_params_to_scatter(parameters)
+            return impedance_params_to_scatter(parameters, snp.reference_resistance)
         end
     elseif parameters_type == "Y"
         if snp.parameter_type == "S"
-            return scatter_params_to_admittance(parameters)
+            return scatter_params_to_admittance(parameters, snp.reference_resistance)
         elseif snp.parameter_type == "Y"
             return parameters
         elseif snp.parameter_type == "Z"
@@ -205,7 +202,7 @@ function convert_param_type(snp::TouchstoneSnP, frequency::Float64, parameters_t
         end
     elseif parameters_type == "Z"
         if snp.parameter_type == "S"
-            return scatter_params_to_impedance(parameters)
+            return scatter_params_to_impedance(parameters, snp.reference_resistance)
         elseif snp.parameter_type == "Y"
             return inv(parameters)
         elseif snp.parameter_type == "Z"

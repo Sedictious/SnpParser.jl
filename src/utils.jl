@@ -136,5 +136,5 @@ Note: for Touchstoner ver2.0 files decibel = 20log10
 ...
 """
 function ma_to_db(ma_params::Array)
-   return [20log1o(ma_params[1]), ma_params[2]]
+   return [20log10(ma_params[1]), ma_params[2]]
 end
