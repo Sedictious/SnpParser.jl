@@ -73,7 +73,7 @@ function transform_vector_to_matrix_mode(arr::Array, matrix_mode::String, freq_n
         throw("Provided matrix should be square")
     end
 
-    return inv(I + z_params/ref_resistance)*(z_params/ref_resistance - 1)
+    return inv(I + z_params/ref_resistance)*(z_params/ref_resistance - I)
  end
 
  function scatter_params_to_impedance(s_params::Array, ref_resistance::Int)
@@ -82,30 +82,34 @@ function transform_vector_to_matrix_mode(arr::Array, matrix_mode::String, freq_n
         throw("Provided matrix should be square")
     end
 
-    return (I + s_params)*(z_params/ref_resistance - 1)
+    return inv(I - s_params)*(I + s_params)*ref_resistance
  end
 
+
+ function to_complex(carr)
+    return carr[1] + carr[2]im
+ end
 
  """
  Converts parameters in Magnitude-Angle to Real-Imaginary format
 ...
 # Arguments
-- `ma_params` : Array of tuples in the form (magnitude[linear], angle[rad])
+- `ma_params` : Parameters in the form (magnitude[linear], angle[rad])
 ...
 """
 function ma_to_ri(ma_params::Array)
-    return [(t[1]*cos(t[2]), t[1]*sin(t[2])) for t in ma_params]
+    return [ma_params[1]*cos(ma_params[2]), ma_params[1]*sin(ma_params[2])]
 end
 
 """
 Converts parameters in Real-Imaginary to Magnitude-Angle format
 ...
 # Arguments
-- `ri_params` : Array of tuples in the form (real, imaginary)
+- `ri_params` : Parameters in the form (real, imaginary)
 ...
 """
-function ri_to_ma(ma_params::Array)
-   return [(sqrt(t[1]*t[1] + t[2]*t[2]), atan(t[2]/t[1])) for t in ma_params]
+function ri_to_ma(ri_params::Array)
+   return [sqrt(ri_params[1]*ri_params[1] + ri_params[2]*ri_params[2]), atan(ri_params[2]/ri_params[1])]
 end
 
 
@@ -113,24 +117,24 @@ end
 Converts parameters in Decibel-Angle to Magnitude-Angle format
 ...
 # Arguments
-- `db_params` : Array of tuples in the form (magnitude[db], angle[rad])
+- `db_params` : Parameters in the form (magnitude[db], angle[rad])
 
 Note: for Touchstoner ver2.0 files decibel = 20log10
 ...
 """
 function db_to_ma(db_params::Array)
-   return [(10^(t[1]/20), t[2]) for t in db_params]
+   return [10^(db_params[1]/20), db_params[2]]
 end
 
 """
 Converts parameters in Magnitude-Angle to Decibel-Angle format
 ...
 # Arguments
-- `ma_params` : Array of tuples in the form (magnitude[linear], angle[rad])
+- `ma_params` : Parameters in the form (magnitude[linear], angle[rad])
 
 Note: for Touchstoner ver2.0 files decibel = 20log10
 ...
 """
 function ma_to_db(ma_params::Array)
-   return [(20log1o(t[1]), t[2]) for t in ma_params]
+   return [20log1o(ma_params[1]), ma_params[2]]
 end

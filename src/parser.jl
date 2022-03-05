@@ -42,7 +42,6 @@ struct TouchstoneSnP
         i = skip_comments(sentences, i+1)
         
         # Parse option line
-        
         freq_unit = match(r"((?:GHZ)|(?:KHZ)|(?:MHZ)|(?:HZ))", sentences[i])
         if !(freq_unit === nothing)
             frequency_unit = freq_unit[1]
@@ -70,6 +69,7 @@ struct TouchstoneSnP
         
         i = skip_comments(sentences, i+1)
 
+        # Parse keywords that don't appear in a specific order
         while true
             keyword = match(r"^\s*\[(.+)\]", sentences[i])[1]
             if keyword == "NUMBER OF PORTS"
@@ -135,3 +135,82 @@ struct TouchstoneSnP
     end
 end
 
+
+"""
+Converts Network/Noise data to complex matrix
+...
+# Arguments
+- `snp::TouchstonerSnP`: provided Touchstone file
+- `frequency::Int`: target frequency (must be specified in snp)
+- `noise_data::Bool` if set to `true` returns results for Noise Data. Else,
+    Network Data are assumed
+...
+"""
+function get_ri_form(snp::TouchstoneSnP, frequency::Float64, noise_data::Bool=false)
+data = noise_data ? snp.noise_data : snp.network_data
+if !haskey(data, frequency)
+    throw("Frequency not specified in data")
+end
+
+parameters = data[frequency]
+n, m = size(parameters)
+
+if snp.parameter_format == "RI"
+    return [to_complex([i, 2j - 1:2j]) for i = 1:n, j = 1:n]
+elseif snp.parameter_format == "MA"
+   return [to_complex(ma_to_ri(parameters[i, 2j - 1:2j])) for i = 1:n, j = 1:n]
+elseif snp.parameter_format == "DB"
+    return [to_complex(db_to_ma(ma_to_ri(parameters[i, 2j - 1:2j]))) for i = 1:n, j = 1:n]
+end
+end
+
+"""
+Converts Network/Noise parameters to specified parameters
+...
+# Arguments
+- `snp::TouchstonerSnP`: provided Touchstone file
+- `frequency::Int`: target frequency (must be specified in snp)
+- `parameter_type`::Str : parameter typ to convert to (source type being the  one specified in SnP)
+- `noise_data::Bool` if set to `true` returns results for Noise Data. Else,
+    Network Data are assumed
+...
+"""
+function convert_param_type(snp::TouchstoneSnP, frequency::Float64, parameters_type::String, noise_data::Bool=false)
+    data = noise_data ? snp.noise_data : snp.network_data
+    if !haskey(data, frequency)
+        throw("Frequency not specified in data")
+    end
+
+
+    # Convert to R-I format for easier conversion
+    parameters = get_ri_form(snp, frequency, noise_data)
+
+    # todo: Mixed-port parameters
+    # Also I don't like this at all :P
+    if parameters_type == "S"
+        if snp.parameter_type == "S"
+            return parameters
+        elseif snp.parameter_type == "Y"
+            return admittance_params_to_scatter(parameters)
+        elseif snp.parameter_type == "Z"
+            return impedance_params_to_scatter(parameters)
+        end
+    elseif parameters_type == "Y"
+        if snp.parameter_type == "S"
+            return scatter_params_to_admittance(parameters)
+        elseif snp.parameter_type == "Y"
+            return parameters
+        elseif snp.parameter_type == "Z"
+            return inv(parameters)
+        end
+    elseif parameters_type == "Z"
+        if snp.parameter_type == "S"
+            return scatter_params_to_impedance(parameters)
+        elseif snp.parameter_type == "Y"
+            return inv(parameters)
+        elseif snp.parameter_type == "Z"
+            return parameters
+    end
+end
+
+end
