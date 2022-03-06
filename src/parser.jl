@@ -74,6 +74,8 @@ struct TouchstoneSnP
             keyword = match(r"^\s*\[(.+)\]", sentences[i])[1]
             if keyword == "NUMBER OF PORTS"
                 number_of_ports = parse(Int, match(r"^\[NUMBER OF PORTS\]\s+(\d+)", sentences[i])[1])
+            elseif keyword == "REFERENCE"
+                reference_resistance = parse(Int, match(r"(\d+)", sentences[i])[1])
             elseif keyword == "TWO-PORT ORDER"
                 two_port_data_order = match(r"^\[TWO-PORT DATA ORDER\]\s+((?:12_21)|(?:21_12))", sentences[i])[1]
             elseif keyword == "NUMBER OF FREQUENCIES"

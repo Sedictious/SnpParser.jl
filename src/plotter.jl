@@ -1,16 +1,16 @@
-using Plots
 """
 ...
 # Arguments
-- `snp::TouchstonerSnP`: provided Touchstone file
-- `parameter_type::Str`: network parameter you want to plot. Possible options:
+- `snp::TouchstonerSnP`: Provided Touchstone file
+- `parameter_type::Str`: Network parameter you want to plot. Possible options:
     * `S` scattering parameters
     * `Y` admittance parameters
     * `Z` impedance parameters
     * `H` hybrid-h parameters (two-port network only)
     * `G` hybrid-g parameters (two-port network only)
--  `ports::Arr`
-- `noise_data::Bool` if set to `true` returns results for Noise Data. Else,
+- `ports::Arr` : Ports to plot. For example, in order to plot S11 and S12 you the provided parameter
+                    should he [[1, 1], [1, 2]]
+- `noise_data::Bool` : If set to `true` returns results for Noise Data. Else,
     Network Data are assumed
 ...
 """

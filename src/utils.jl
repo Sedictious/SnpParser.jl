@@ -85,7 +85,6 @@ function transform_vector_to_matrix_mode(arr::Array, matrix_mode::String, freq_n
     return inv(I - s_params)*(I + s_params)*ref_resistance
  end
 
-
  function to_complex(carr)
     return carr[1] + carr[2]im
  end
