@@ -36,5 +36,5 @@ The output plot should look something similar to this:
 Version 1.0 is planned to be supported in a future release. However, there is an easy work-around by following the necessary steps:
 
 * At the top of your Touchstone file add `[Version] 2.0`
-* Right below the `#options` line add `[Number of Ports] N` where N is the number of ports. You can easily determine the number of ports from your network data: each row of your network data matrix should have $\text{N}^2 + 1$ columns
+* Right below the `#options` line add `[Number of Ports] N` where N is the number of ports. You can easily determine the number of ports from your network data: each row of your network data matrix should have N^2 + 1 columns
 * Above your network data add the `[Network Data]` tag.
