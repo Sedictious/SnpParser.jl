@@ -27,6 +27,9 @@ julia> plot_snp(snp, "S", "output.png", Set([[1, 1], [2, 2], [3, 3]]))
 
 ```
 
+The output plot should look something similar to this:
+
+![Output](https://github.com/Sedictious/SnpParser.jl/blob/main/images/example_3port_s_params.png)
 
 ## Parsing version 1.0 Touchstone files
 
