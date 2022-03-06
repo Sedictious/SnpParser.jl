@@ -8,13 +8,14 @@
     * `Z` impedance parameters
     * `H` hybrid-h parameters (two-port network only)
     * `G` hybrid-g parameters (two-port network only)
+- `img_path` : Path to save the image to
 - `ports::Arr` : Ports to plot. For example, in order to plot S11 and S12 you the provided parameter
                     should he [[1, 1], [1, 2]]
 - `noise_data::Bool` : If set to `true` returns results for Noise Data. Else,
     Network Data are assumed
 ...
 """
-function plot_snp(snp::TouchstoneSnP, parameter_type::String, ports::Set = [], noise_data=false)
+function plot_snp(snp::TouchstoneSnP, parameter_type::String, img_path::String, ports::Set = [], noise_data=false)
     # todo, implement option for alternative plotting options (e.g. Smith chart)
     # for now, just the magnitudes will be plotted 
     
@@ -41,6 +42,5 @@ function plot_snp(snp::TouchstoneSnP, parameter_type::String, ports::Set = [], n
         end
         plot!(tplot, frequencies, param_magnitudes, label=labelp, lw = 2)
     end
-    gui(tplot)
-
+    savefig(tplot, img_path)
 end
