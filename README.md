@@ -1,3 +1,4 @@
+[![Run tests](https://github.com/Sedictious/SnpParser.jl/actions/workflows/tests.yml/badge.svg)](https://github.com/Sedictious/SnpParser.jl/actions/workflows/tests.yml)
 # SnpParser.jl
 
 A module for parsing and visualizing [Touchstone](http://www.ibis.org/touchstone_ver2.0/touchstone_ver2_0.pdf) files. Currently, only version 2.0 files are supported but there are ways to easily make version 1.0 files parsable by `SnpParser`.
